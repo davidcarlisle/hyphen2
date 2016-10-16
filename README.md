@@ -15,7 +15,9 @@ So `\xshowhyphens{wellbeing babysitter dishwater}`
 
 Produces terminal output
 
- well-[1]be-[100]ing baby-[1]sit-[100]ter dish-[1]wa-[100]ter  
+`
+ well-[1]be-[100]ing baby-[1]sit-[100]ter dish-[1]wa-[100]ter
+`
 
 
 Showing that a penalty of 1 is applied to breaks well-being,
