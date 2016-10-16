@@ -1,0 +1,172 @@
+\documentclass{article}
+%\showoutput
+\makeatletter
+
+\gdef\xshowhyphens#1{
+  \setbox0\vbox{{%
+    \everypar{}%
+    \parfillskip\z@skip\hsize\maxdimen
+    \normalfont
+    \pretolerance\m@ne\tolerance\m@ne\hbadness\@MM\showboxdepth\z@\ #1%
+    }}%
+\directlua{
+showhyph(tex.getbox(0).list.list)
+}%
+}
+
+
+
+\newlanguage\cmpwords
+
+
+
+\language\cmpwords
+\hyphenation{
+baby-sitter
+bank-roll
+carry-all
+common-place
+dish-water
+every-thing
+fish-monger
+fore-father
+fore-finger
+fore-knowledge
+gold-smith
+grand-uncle
+head-quarters
+hover-craft
+motor-cyle
+news-letter
+rain-water
+rattle-snake
+sea-shore
+silver-smith
+sister-hood
+spokes-person
+super-charge
+super-impose
+super-script
+super-sonic
+super-tanker
+task-master
+tender-foot
+thunder-bolt
+thunder-storm
+up-bringing
+waste-basket
+waste-water
+water-front
+water-power
+water-tight
+water-wheel
+weather-man
+weather-proof
+well-being
+}
+\language0
+
+\textwidth7cm \emergencystretch2em
+
+\def\z{
+babysitter bankroll carryall commonplace dishwater everything fishmonger
+forefather forefinger foreknowledge goldsmith granduncle headquarters hovercraft
+motorcyle newsletter rainwater rattlesnake seashore silversmith sisterhood
+spokesperson supercharge superimpose superscript supersonic supertanker taskmaster
+tenderfoot thunderbolt thunderstorm upbringing wastebasket wastewater waterfront
+waterpower watertight waterwheel weatherman weatherproof
+}
+\def\zz{\par\hrule wellbeing \textbf{\z} one two three four five \z\par\hrule}
+
+\begin{document}
+\hbadness100000
+
+\zz
+
+\directlua{
+function showhyph(h)
+ local s=''
+ for n in node.traverse(h) do
+  if (n.id==29) then s = s .. string.char(n.char)
+  else if (n.id==7) then s = s .. '-[' .. n.penalty .. ']'
+  else if (n.id==12) then s = s .. ' '
+  end
+  end
+  end
+ end
+texio.write_nl('\string\n' .. s)
+end
+%
+function reset_lang(h,old,new,cp)
+ for n in node.traverse(h) do
+  if (n.id==29 and n.lang==old) then
+    n.lang=new
+  else if (n.id==7 and n.penalty==cp) then
+    local nsk = node.new('glue')
+    nsk.width=123
+    node.insert_before(h,n,nsk)
+    node.remove(h,n)
+  end
+  end
+ end
+end
+%
+function hide_disc(h,oldpen)
+ local discs={}
+ for n in node.traverse(h) do
+  if (n.id==7 and n.penalty==oldpen) then
+    table.insert(discs,n)
+    local nsk = node.new('glue')
+    nsk.width=123
+    node.insert_before(h,n,nsk)
+    node.remove(h,n)
+  end
+ end
+return discs
+end
+%
+function restore_disc(h,newpen,discs)
+ local discnum=0
+ for n in node.traverse(h) do
+  if (n.id==12 and n.width==123) then
+    discnum=discnum+1
+    node.insert_before(h,n,discs[discnum])
+    node.remove(h,n)
+  end
+ end
+end
+%
+function my_hy (hd,tl)
+local tp=tex.hyphenpenalty
+tex.language=\the\cmpwords
+local compoundpen=1
+local otherpen=100
+tex.hyphenpenalty=compoundpen
+reset_lang(hd,0,\the\cmpwords,compoundpen)
+lang.hyphenate(hd)
+%showhyph(hd)
+local discs
+discs=hide_disc(hd,compoundpen)
+%showhyph(hd)
+tex.hyphenpenalty=otherpen
+tex.language=0
+reset_lang(hd,\the\cmpwords,0)
+lang.hyphenate(hd)
+%showhyph(hd)
+restore_disc(hd,compoundpen,discs)
+tex.hyphenpenalty=tp
+%showhyph(hd)
+end
+luatexbase.add_to_callback("hyphenate",my_hy,"my hyphens")
+}
+
+\xshowhyphens{wellbeing babysitter dishwater}
+
+\xshowhyphens{}
+
+\zz
+
+
+
+\end{document}
+
